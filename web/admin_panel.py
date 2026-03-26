@@ -479,6 +479,78 @@ HTML_TEMPLATE = """
     </div>
 </div>
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('registrationsChart');
+    if (!ctx) return;
+    
+    // Передаём данные из Jinja2 в JS (безопасно через tojson)
+    const labels = {{ chart_labels | tojson }};
+    const values = {{ chart_values | tojson }};
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Новые пользователи',
+                data: values,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 3,
+                pointHoverRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            return `Регистраций: ${context.parsed.y}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Часы (UTC)'
+                    },
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Количество'
+                    },
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+});
+
 function showDashboard() {
     document.querySelectorAll('[id^="table-"], #dashboard').forEach(el => {
         el.style.display = 'none';
@@ -558,8 +630,8 @@ def index():
         HTML_TEMPLATE,
         grouped_data=grouped_data,
         search_query=search_query,
-        chart_labels=chart_labels,  # ← часы: ["00", "01", ..., "23"]
-        chart_values=chart_values,  # ← числа: [5, 3, 0, ..., 7]
+        chart_labels=chart_labels,
+        chart_values=chart_values,
         now=now
     )
 
