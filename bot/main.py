@@ -2,10 +2,28 @@ import os
 import json
 import telebot
 from telebot import types
+from telebot import apihelper  # Добавьте этот импорт
 from groq import Groq
 from dotenv import load_dotenv
 import sys
+import requests  # Добавьте этот импорт
 
+
+# === ОТКЛЮЧАЕМ ПРОКСИ ПОЛНОСТЬЮ (ДОБАВЬТЕ ЭТОТ БЛОК) ===
+# Удаляем прокси из переменных окружения
+os.environ['HTTP_PROXY'] = ''
+os.environ['HTTPS_PROXY'] = ''
+os.environ['http_proxy'] = ''
+os.environ['https_proxy'] = ''
+
+# Отключаем прокси в библиотеке telebot
+apihelper.proxy = None
+
+# Создаем новую сессию requests без прокси
+session = requests.Session()
+session.trust_env = False  # Игнорировать системные прокси
+apihelper.session = session
+# ====================================================
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
@@ -32,6 +50,10 @@ MAP_FILE = 'message_map.json'
 client = Groq(api_key=GROQ_API_KEY)
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
+print(f"Токен: '{TELEGRAM_TOKEN}'")
+print(f"Длина токена: {len(TELEGRAM_TOKEN)}")
+
+# ... остальной код без изменений ...
 
 def load_message_map():
     if os.path.exists(MAP_FILE):
